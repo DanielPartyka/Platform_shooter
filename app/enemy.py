@@ -32,6 +32,11 @@ class Enemy(object):
         self.image_right = player_image_right
         self.hitbox = (self.x - 5, self.y, self.width - 9, self.height)
         self.hp = 100
+        self.visiblity = True
+
+    # Delete enemy
+    def __del__(self):
+        pass
 
     # Move the sprite based on user keypresses
     def update(self, movement, SCREEN_WIDTH):
@@ -68,4 +73,3 @@ class Enemy(object):
 
     def hit(self):
         self.hp -= 25
-        print(self.hp)

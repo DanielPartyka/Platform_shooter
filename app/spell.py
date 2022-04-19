@@ -1,6 +1,7 @@
 import pygame
 
-spell_image = pygame.image.load('images/player/fireball.png')
+spell_image_p = pygame.image.load('images/player/fireball.png')
+spell_image_e = pygame.image.load('images/player/blue_fire_ball.png')
 
 class Spell(object):
     def __init__(self, x, y, radius, facing):
@@ -9,4 +10,5 @@ class Spell(object):
         self.radius = radius
         self.facing = facing
         self.velocity = 30 * facing
-        self.image = spell_image
+        self.image_player = spell_image_p
+        self.image_enemy = spell_image_e

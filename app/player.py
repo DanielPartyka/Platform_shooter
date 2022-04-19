@@ -30,6 +30,9 @@ class Player(object):
         self.image_left = player_image_left
         self.image_right = player_image_right
         self.hitbox = (self.x + 2, self.y, self.width - 9, self.height)
+        self.lives = 3
+        self.score = 0
+        self.kills = 0
 
     # Move the sprite based on user keypresses
     def update(self, pressed_keys, SCREEN_WIDTH):
@@ -58,3 +61,6 @@ class Player(object):
             else:
                 self.isJump = False
                 self.jumpCount = 10
+
+    def hit(self):
+        self.lives -= 1

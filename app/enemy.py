@@ -11,8 +11,8 @@ from pygame.locals import (
     KEYDOWN,
     QUIT,
 )
-player_image_left = pygame.image.load('images/player/skeleton_idee_left.png')
-player_image_right = pygame.image.load('images/player/skeleton_idee_right.png')
+enemy_image_left = pygame.image.load('images/player/enemy_left.png')
+enemy_image_right = pygame.image.load('images/player/enemy_right.png')
 
 
 class Enemy(object):
@@ -28,8 +28,8 @@ class Enemy(object):
         self.jumpCount = 10
         self.direction_left = False
         self.direction_right = True
-        self.image_left = player_image_left
-        self.image_right = player_image_right
+        self.image_left = enemy_image_left
+        self.image_right = enemy_image_right
         self.hitbox = (self.x - 5, self.y, self.width - 9, self.height)
         self.hp = 100
         self.visiblity = True

@@ -31,7 +31,10 @@ lives = pygame.image.load('images/player/heart.png')
 
 # generate font
 font_score = pygame.font.SysFont('comicsans', 25)
-
+# hp bar text
+font_hp = pygame.font.SysFont('comicsans', 18)
+font_enemy_hp = pygame.font.SysFont('comicsans', 12)
+font_game_over = pygame.font.SysFont('comicsans', 48)
 # Create the screen object
 # The size is determined by the constant SCREEN_WIDTH and SCREEN_HEIGHT
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -63,12 +66,20 @@ bot_ammo = []
 
 def render_score_player_lives():
     # Player score
-    score = font_score.render(f"score: {player.score}", True, (0, 0, 0))
+    score = font_score.render(f"Score: {player.score}", True, (255, 255, 255))
     # Player kills count
-    kills = font_score.render(f"killed: {player.kills}", True, (0, 0, 0))
+    kills = font_score.render(f"Killed: {player.kills}", True, (255, 255, 255))
+    # Player hp text
+    hp = font_hp.render(f"player hp: {player.hp}/100", True, (255, 255, 255))
+    # enemy hp text
+    enemy_hp = font_enemy_hp.render(f"{enemy.hp}/100", True, (255, 255, 255))
 
+    if enemy.visiblity:
+        screen.blit(enemy_hp, (enemy.hitbox[0]+25, enemy.hitbox[1] - 22))
     screen.blit(score, (25, 25))
-    screen.blit(kills, (950, 70))
+    screen.blit(kills, (25, 70))
+    screen.blit(hp, (905, 73))
+
     indent_between_lives_image = 0
     for live in range(player.lives):
         if player.lives > 1:
@@ -91,20 +102,24 @@ def leftrightDirection(object):
             screen.blit(object.image_left, (object.x, object.y))
             object.hitbox = (object.x + 2, object.y, object.width - 9, object.height)
         else:
-            screen.blit(player.image_right, (object.x, object.y))
+            screen.blit(object.image_right, (object.x, object.y))
             object.hitbox = (object.x - 5, object.y, object.width - 9, object.height)
 
-def draw_enemy_healt_bar():
+def draw_healt_bar():
+    # player health bar
+    pygame.draw.rect(screen, [255, 0, 0], [875, 70, 200, 35], 1)
+    pygame.draw.rect(screen, [255, 0, 0], [875, 70, 2*player.hp, 35])
+    # enemy health bar
     if enemy.visiblity:
         pygame.draw.rect(screen, (255, 0, 0), (enemy.hitbox[0], enemy.hitbox[1] - 20, 100, 15))
         pygame.draw.rect(screen, (0, 128, 0), (enemy.hitbox[0], enemy.hitbox[1] - 20, 100 - (100 - enemy.hp), 15))
-        pygame.draw.rect(screen, [255, 0, 0], [50, 50, 300, 80], 1)
-        pygame.draw.rect(screen, [255, 0, 0], [50, 50, 250, 80])
+
+
 def drawWindow():
     screen.blit(background, (0, 0))
+    draw_healt_bar()
     render_score_player_lives()
     leftrightDirection(enemy)
-    draw_enemy_healt_bar()
     leftrightDirection(player)
     for pa in player_ammo:
         screen.blit(pa.image_player, (pa.x, pa.y))
@@ -150,15 +165,23 @@ def storeAmmo(ammo, object):
             ammo.pop(ammo.index(am))
 # Main loop
 while running:
+    game_over = False
     # Fps
     clock.tick(60)
     # Game delay
     pygame.time.delay(15)
 
-
     # if player lives 0 game over
     if player.lives <= 0:
-        running = False
+        screen.fill((0, 0, 0))
+        game_over = True
+        game_over_text = font_game_over.render("Game Over", True, (255, 255, 255))
+        game_over_text_score = font_game_over.render(f"Score: {player.score}", True, (255, 255, 255))
+        screen.blit(game_over_text, (380, 60))
+        screen.blit(game_over_text_score, (380, 150))
+        skeleton_image = pygame.image.load('images/player/sans.png')
+        screen.blit(skeleton_image, (350, 300))
+        pygame.display.update()
 
     # For loop through the event queue
     for event in pygame.event.get():
@@ -173,52 +196,53 @@ while running:
         elif event.type == QUIT:
             running = False
 
-    # kill enemy if hp goes <= 0
-    if enemy.hp <= 0:
-        del enemy
-        player.score += 10
-        player.kills += 1
-        enemy = Enemy(50, 600, 100, 120)
-        enemy.visiblity = False
-        enemy_respawn_cooldown = time.time()
+    if not game_over:
+        # kill enemy if hp goes <= 0
+        if enemy.hp <= 0:
+            del enemy
+            player.score += 10
+            player.kills += 1
+            enemy = Enemy(50, 600, 100, 120)
+            enemy.visiblity = False
+            enemy_respawn_cooldown = time.time()
 
-    # enemy 2 seconds respawn cooldown after being killed
-    if enemy.visiblity == False:
-        if time.time() - enemy_respawn_cooldown >= 2:
-            enemy.visiblity = True
+        # enemy 2 seconds respawn cooldown after being killed
+        if enemy.visiblity == False:
+            if time.time() - enemy_respawn_cooldown >= 2:
+                enemy.visiblity = True
 
-    # if player kills enemy, enemy is invisible for 2 seconds
-    if enemy.visiblity:
-        # Enemy movement
-        enemy_movement = random.choice(movement)
-        if enemy_movement == 'shoot':
-            if enemy_first_shoot:
-                enemy_first_shoot = False
-                bot_shooting_cooldown = time.time()
-                shoot(enemy)
+        # if player kills enemy, enemy is invisible for 2 seconds
+        if enemy.visiblity:
+            # Enemy movement
+            enemy_movement = random.choice(movement)
+            if enemy_movement == 'shoot':
+                if enemy_first_shoot:
+                    enemy_first_shoot = False
+                    bot_shooting_cooldown = time.time()
+                    shoot(enemy)
+                # Set shooting delay for 300 ms
+                elif time.time() - bot_shooting_cooldown >= 0.3:
+                    shoot(enemy)
+                    bot_shooting_cooldown = time.time()
+            else:
+                enemy.update(enemy_movement, SCREEN_WIDTH)
+
+        # Player key handler
+        if pressed_keys[K_z]:
+            if player_first_shoot:
+                player_first_shoot = False
+                player_shooting_cooldown = time.time()
+                shoot(player)
             # Set shooting delay for 300 ms
-            elif time.time() - bot_shooting_cooldown >= 0.3:
-                shoot(enemy)
-                bot_shooting_cooldown = time.time()
-        else:
-            enemy.update(enemy_movement, SCREEN_WIDTH)
+            elif time.time() - player_shooting_cooldown >= 0.5:
+                shoot(player)
+                player_shooting_cooldown = time.time()
 
-    # Player key handler
-    if pressed_keys[K_z]:
-        if player_first_shoot:
-            player_first_shoot = False
-            player_shooting_cooldown = time.time()
-            shoot(player)
-        # Set shooting delay for 300 ms
-        elif time.time() - player_shooting_cooldown >= 0.5:
-            shoot(player)
-            player_shooting_cooldown = time.time()
+        # Player shooting
+        storeAmmo(player_ammo, player)
+        storeAmmo(bot_ammo, enemy)
 
-    # Player shooting
-    storeAmmo(player_ammo, player)
-    storeAmmo(bot_ammo, enemy)
-
-    # Draw player
-    player.update(pressed_keys, SCREEN_WIDTH)
-    drawWindow()
+        # Draw player
+        player.update(pressed_keys, SCREEN_WIDTH)
+        drawWindow()
 

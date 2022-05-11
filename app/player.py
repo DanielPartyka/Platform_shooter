@@ -31,6 +31,7 @@ class Player(object):
         self.image_right = player_image_right
         self.hitbox = (self.x + 2, self.y, self.width - 9, self.height)
         self.lives = 3
+        self.hp = 100
         self.score = 0
         self.kills = 0
 
@@ -63,4 +64,7 @@ class Player(object):
                 self.jumpCount = 10
 
     def hit(self):
-        self.lives -= 1
+        self.hp -= 25
+        if self.hp <= 0:
+            self.lives -= 1
+            self.hp = 100

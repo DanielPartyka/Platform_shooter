@@ -20,13 +20,20 @@ pygame.init()
 # Init timer
 clock = pygame.time.Clock()
 
-# Define constants for the screen width and height
-SCREEN_WIDTH = 1080
-SCREEN_HEIGHT = 720
+# lets use grid 18x15, each block 64x64 px and set boundaries
+SCREEN_WIDTH = 1152
+SCREEN_HEIGHT = 920
+
+# game title
+pygame.display.set_caption('Platform shooter')
 
 # background image
 background = pygame.image.load('images/background/War3.png')
-# player lives
+# blocks images
+dirt = pygame.image.load('images/blocks/tile.png')
+lava = pygame.image.load('images/blocks/lava.png')
+
+#player lives
 lives = pygame.image.load('images/player/heart.png')
 
 # generate font
@@ -44,8 +51,9 @@ running = True
 
 # enemy possible movement
 movement = ['left', 'right', 'jump', 'shoot']
-# add shooting logic later
-# 'shoot'
+
+# collision tiles
+tile_list = []
 
 # Player first shoot
 player_first_shoot = True
@@ -53,7 +61,7 @@ player_first_shoot = True
 enemy_first_shoot = True
 
 # Create player
-player = Player(900, 600, 100, 113)
+player = Player(900, 430, 100, 113)
 # Player ammo
 player_ammo = []
 
@@ -114,10 +122,45 @@ def draw_healt_bar():
         pygame.draw.rect(screen, (255, 0, 0), (enemy.hitbox[0], enemy.hitbox[1] - 20, 100, 15))
         pygame.draw.rect(screen, (0, 128, 0), (enemy.hitbox[0], enemy.hitbox[1] - 20, 100 - (100 - enemy.hp), 15))
 
-
 def drawWindow():
+    map_block = [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
+        [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+        [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+        [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+
+    ]
+    # set image background
     screen.blit(background, (0, 0))
     draw_healt_bar()
+    # draw collision blocks
+    tile_size = 64
+    row_count = 0
+    for row in map_block:
+        col_count = 0
+        for tile in row:
+            if tile == 1:
+                tile = pygame.transform.scale(dirt, (col_count * tile_size, row_count * tile_size))
+                tile_rect = tile.get_rect()
+                screen.blit(dirt, (col_count * tile_size, row_count * tile_size))
+                tile = (tile, tile_rect)
+                tile_list.append(tile)
+            elif tile == 2:
+                screen.blit(lava, (col_count * tile_size, row_count * tile_size))
+            col_count += 1
+        row_count += 1
+
     render_score_player_lives()
     leftrightDirection(enemy)
     leftrightDirection(player)
@@ -170,6 +213,7 @@ while running:
     clock.tick(60)
     # Game delay
     pygame.time.delay(15)
+    print(clock.get_fps())
 
     # if player lives 0 game over
     if player.lives <= 0:
@@ -242,7 +286,7 @@ while running:
         storeAmmo(player_ammo, player)
         storeAmmo(bot_ammo, enemy)
 
-        # Draw player
-        player.update(pressed_keys, SCREEN_WIDTH)
-        drawWindow()
+    # Draw player
+    player.update(pressed_keys, SCREEN_WIDTH)
+    drawWindow()
 

@@ -17,6 +17,7 @@ enemy_image_right = pygame.image.load('images/player/enemy_right.png')
 
 class Enemy(object):
     def __init__(self, x, y, width, height):
+        self.enemy_image = [enemy_image_left, enemy_image_right]
         super(Enemy, self).__init__()
         self.x = x
         self.y = y
@@ -28,8 +29,7 @@ class Enemy(object):
         self.jumpCount = 10
         self.direction_left = False
         self.direction_right = True
-        self.image_left = enemy_image_left
-        self.image_right = enemy_image_right
+        self.image = self.enemy_image[0]
         self.hitbox = (self.x - 5, self.y, self.width - 9, self.height)
         self.hp = 100
         self.visiblity = True
@@ -47,6 +47,7 @@ class Enemy(object):
             if self.x <= self.velocity:
                 self.direction_left = False
                 self.direction_right = True
+                self.image = self.enemy_image[0]
             self.x -= self.velocity
             self.direction_left = True
             self.direction_right = False
@@ -54,6 +55,7 @@ class Enemy(object):
             self.x += self.velocity
             self.direction_left = False
             self.direction_right = True
+            self.image = self.enemy_image[1]
 
         # jumping logic
         if not(self.isJump):

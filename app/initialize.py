@@ -28,7 +28,7 @@ SCREEN_HEIGHT = 920
 pygame.display.set_caption('Platform shooter')
 
 # background image
-background = pygame.image.load('images/background/War3.png')
+background = pygame.image.load('images/background/War3.jpg')
 # blocks images
 dirt = pygame.image.load('images/blocks/tile.png')
 lava = pygame.image.load('images/blocks/lava.png')
@@ -122,7 +122,14 @@ def draw_healt_bar():
         pygame.draw.rect(screen, (255, 0, 0), (enemy.hitbox[0], enemy.hitbox[1] - 20, 100, 15))
         pygame.draw.rect(screen, (0, 128, 0), (enemy.hitbox[0], enemy.hitbox[1] - 20, 100 - (100 - enemy.hp), 15))
 
-def drawWindow():
+
+def drawDynamicStructures():
+    # set image background
+    screen.blit(background, (0, 0))
+    # dynamic components health bars, lives, left right player textures
+    draw_healt_bar()
+
+    # static components background, collision blocks
     map_block = [
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -141,9 +148,6 @@ def drawWindow():
         [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 
     ]
-    # set image background
-    screen.blit(background, (0, 0))
-    draw_healt_bar()
     # draw collision blocks
     tile_size = 64
     row_count = 0
@@ -155,7 +159,8 @@ def drawWindow():
                 tile_rect = tile.get_rect()
                 screen.blit(dirt, (col_count * tile_size, row_count * tile_size))
                 tile = (tile, tile_rect)
-                tile_list.append(tile)
+                if len(tile_list) < 1:
+                    tile_list.append(tile)
             elif tile == 2:
                 screen.blit(lava, (col_count * tile_size, row_count * tile_size))
             col_count += 1
@@ -206,15 +211,12 @@ def storeAmmo(ammo, object):
             am.x += am.velocity * 1.5
         else:
             ammo.pop(ammo.index(am))
+
 # Main loop
 while running:
-    game_over = False
-    # Fps
     clock.tick(60)
-    # Game delay
-    pygame.time.delay(15)
     print(clock.get_fps())
-
+    game_over = False
     # if player lives 0 game over
     if player.lives <= 0:
         screen.fill((0, 0, 0))
@@ -286,7 +288,10 @@ while running:
         storeAmmo(player_ammo, player)
         storeAmmo(bot_ammo, enemy)
 
-    # Draw player
-    player.update(pressed_keys, SCREEN_WIDTH)
-    drawWindow()
+        # Draw player
+        player.update(pressed_keys, SCREEN_WIDTH, tile_list)
+            # Draw dynamic components
+        drawDynamicStructures()
+
+
 
